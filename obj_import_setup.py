@@ -200,7 +200,11 @@ def setup_objects():
                 bobj_name = f.split(".")[0]
                 obj_names += [bobj_name]
                 
+                # For debugging the materials. If the object is already
+                #   in the blend file don't import.
                 if bobj_name in bpy.data.objects:
+                    msg = "skipped imort of: " + bobj_name + " Object already in blend file."
+                    bpy.context.window_manager.popup_menu(oops, title=msg, icon='ERROR')
                     ob = bpy.data.objects[bobj_name]
                     base_name = ob.name.split(".")[0]
                 else:
@@ -227,6 +231,7 @@ def setup_objects():
                 mats[bobj_name] = mat
 
     for obn in obj_names:
+        mod_obn = obn.lower().replace("_", "")
         images = {}
         base_color_image = None
         ao_image = None
@@ -244,7 +249,10 @@ def setup_objects():
                 if f_type in ['png', 'jpg', 'jpeg', 'tiff', 'bmp', 'gif', 'exr', 'tga']:
                     base_name = f.split(".")[0]
                     img_name = f.split(".")[0].split("Mat")[0][:-1]
-                    if img_name == obn:
+                    mod_name = img_name.lower().replace("_", "")
+                    
+                    #if img_name == obn:
+                    if mod_name == mod_obn:
                         images[img_name] = file
                         
                         # base color
