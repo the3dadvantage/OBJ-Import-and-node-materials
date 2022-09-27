@@ -252,7 +252,7 @@ def setup_objects():
                     mod_name = img_name.lower().replace("_", "")
                     
                     #if img_name == obn:
-                    if mod_name == mod_obn:
+                    if mod_name.startswith(mod_obn):
                         images[img_name] = file
                         
                         # base color
