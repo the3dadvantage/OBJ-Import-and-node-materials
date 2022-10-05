@@ -176,6 +176,22 @@ def material_setup(mat, image):
     return node_tex, node_principled
     
 
+def line_up():
+    """line up objects on the x axis based on bounds"""
+    offset = 0.0
+    for ob in bpy.data.objects:
+        co = np.empty((len(ob.data.vertices), 3), dtype=np.float32)
+        ob.data.vertices.foreach_get("co", co.ravel())
+        wco = apply_transforms(ob, co)
+        
+        x_min = np.min(wco[:, 0])
+        x_max = np.max(wco[:, 0])
+        
+        new_loc = -x_min + offset
+        ob.location.x = -x_min + offset
+        offset = x_max + new_loc + 1.0
+                    
+                    
 def setup_objects():
     
     path = bpy.context.scene.OBS_props.folder_path
@@ -247,16 +263,15 @@ def setup_objects():
                 
                 f_type = split[-1].lower()
                 if f_type in ['png', 'jpg', 'jpeg', 'tiff', 'bmp', 'gif', 'exr', 'tga']:
+                    
                     base_name = f.split(".")[0]
                     img_name = f.split(".")[0].split("Mat")[0][:-1]
                     mod_name = img_name.lower().replace("_", "")
                     
-                    #if img_name == obn:
                     if mod_name.startswith(mod_obn):
                         images[img_name] = file
-                        
                         # base color
-                        if base_name.lower().endswith(("diffuse", "albedo", "base_color")):
+                        if base_name.lower().endswith(("diffuse", "albedo", "base_color", "basecolor")):
                             base_color_image = file
                         
                         # AO
@@ -398,6 +413,16 @@ class ObsApplyScale(bpy.types.Operator):
         return {'FINISHED'}    
 
 
+class ObsLineUpObjects(bpy.types.Operator):
+    """Obs Line Up Objects"""
+    bl_idname = "scene.obs_line_up_objects"
+    bl_label = "Obs line up objects"
+    bl_options = {'REGISTER', 'UNDO'}
+    def execute(self, context):
+        line_up()
+        return {'FINISHED'}
+
+
 class PANEL_PT_objImportSetupMain(bpy.types.Panel):
     """Obs Panel Main"""
     bl_label = "Ons Main"
@@ -417,6 +442,7 @@ class PANEL_PT_objImportSetupMain(bpy.types.Panel):
         col.prop(bpy.context.scene.OBS_props, "bump_strength", text="Bump Distance", icon='SMOOTHCURVE')
         col.operator("scene.obs_object_setup", text= "Import/Setup", icon='IMPORT')
         col.operator("scene.obs_apply_scale", text= "Apply Scale", icon='CHECKMARK')
+        col.operator("scene.obs_line_up_objects", text= "Line Up ", icon='TRACKING_FORWARDS_SINGLE')
 
 
 #===============================
@@ -453,7 +479,6 @@ class SelectDirExample(bpy.types.Operator):
 #===============================
 
 
-
 classes = (
     PANEL_PT_objImportSetupMain,
     ObsSelectFolder,
@@ -463,6 +488,7 @@ classes = (
     OT_TestOpenFilebrowser,
     SelectDirExample,
     ObsApplyScale,
+    ObsLineUpObjects,
 )
 
 
